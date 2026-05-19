@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Préstamo de Autos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script type="module" src="app.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar / Navegación -->
+        <nav class="sidebar">
+            <div class="logo-area">
+                <h2>Control <span>Vehicular</span></h2>
+            </div>
+            <ul class="nav-links">
+                <li><button class="nav-btn active" data-target="prestamos-section">📋 Préstamos</button></li>
+                <li><button class="nav-btn" data-target="admin-section">🚘 Administración</button></li>
+                <li><button class="nav-btn" data-target="historial-section">📜 Historial Préstamos</button></li>
+            </ul>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <main class="main-content">
+            
+            <!-- SECCIÓN: PRÉSTAMOS -->
+            <section id="prestamos-section" class="content-section active">
+                <header class="section-header">
+                    <h1>Nuevo Préstamo</h1>
+                    <p>Registra la salida de un vehículo.</p>
+                </header>
+
+                <div class="card glass">
+                    <form id="loan-form">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="loan-car">Vehículo</label>
+                                <select id="loan-car" required>
+                                    <option value="">Cargando vehículos...</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="loan-oficio">Número de Oficio</label>
+                                <input type="text" id="loan-oficio" placeholder="Ej. OF-2023-001" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="loan-elaborador">Elaborado por</label>
+                                <select id="loan-elaborador" required>
+                                    <option value="">Cargando personal...</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="loan-driver">Quien maneja (Recibe)</label>
+                                <input type="text" id="loan-driver" placeholder="Nombre completo del conductor" required>
+                            </div>
+                            <div class="input-group full-width">
+                                <label for="loan-location">Lugar de comisión</label>
+                                <input type="text" id="loan-location" placeholder="Destino / Propósito" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="loan-start-date">Fecha y hora de salida</label>
+                                <input type="datetime-local" id="loan-start-date" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="loan-end-date">Fecha y hora de regreso (estimada)</label>
+                                <input type="datetime-local" id="loan-end-date" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="loan-mileage">Kilometraje Actual</label>
+                                <input type="number" id="loan-mileage" placeholder="Ej. 45000" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="loan-gas">Nivel de Gasolina</label>
+                                <select id="loan-gas" required>
+                                    <option value="">Seleccionar nivel...</option>
+                                    <option value="Vacío (Reserva)">Vacío (Reserva)</option>
+                                    <option value="1/4 de tanque">1/4 de tanque</option>
+                                    <option value="1/2 tanque">1/2 tanque</option>
+                                    <option value="3/4 de tanque">3/4 de tanque</option>
+                                    <option value="Lleno">Lleno</option>
+                                </select>
+                            </div>
+                            
+                            <div class="input-group full-width" style="margin-bottom: 0;">
+                                <label style="margin-bottom: 10px;">Accesorios del Vehículo (Marque si se entregan)</label>
+                                <div style="display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; border: 1px solid var(--input-border);">
+                                    <label style="display: flex; align-items: center; gap: 10px; font-weight: normal; cursor: pointer;">
+                                        <input type="checkbox" id="acc-tarjeta" style="width: 18px; height: 18px; accent-color: var(--primary-color);"> Tarjeta de circulación
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; font-weight: normal; cursor: pointer;">
+                                        <input type="checkbox" id="acc-poliza" style="width: 18px; height: 18px; accent-color: var(--primary-color);"> Póliza de seguro
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; font-weight: normal; cursor: pointer;">
+                                        <input type="checkbox" id="acc-birlo" style="width: 18px; height: 18px; accent-color: var(--primary-color);"> Birlo de seguridad
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 10px; font-weight: normal; cursor: pointer;">
+                                        <input type="checkbox" id="acc-llanta" style="width: 18px; height: 18px; accent-color: var(--primary-color);"> Llanta de refacción con herramienta para cambio
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Contenedor de Campos Dinámicos -->
+                            <div id="dynamic-fields-container" class="form-grid full-width" style="margin-bottom: 0;"></div>
+
+                            <div class="input-group full-width">
+                                <label for="loan-observations">Observaciones</label>
+                                <textarea id="loan-observations" rows="3" placeholder="Estado del vehículo, daños visibles, etc."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Firmas -->
+                        <div class="signatures-area">
+                            <div class="signature-box">
+                                <label>Firma de quien elabora</label>
+                                <canvas id="canvas-elabora" width="300" height="150"></canvas>
+                                <button type="button" class="btn-clear" data-canvas="canvas-elabora">Limpiar firma</button>
+                            </div>
+                            <div class="signature-box">
+                                <label>Firma de quien recibe (Responsable)</label>
+                                <canvas id="canvas-recibe" width="300" height="150"></canvas>
+                                <button type="button" class="btn-clear" data-canvas="canvas-recibe">Limpiar firma</button>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary" id="btn-save-loan">Registrar Préstamo</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- SECCIÓN: ADMINISTRACIÓN -->
+            <section id="admin-section" class="content-section">
+                <header class="section-header">
+                    <h1>Administración de Vehículos</h1>
+                    <p>Gestiona el padrón de autos disponibles.</p>
+                </header>
+
+                <div class="admin-grid">
+                    <div class="card glass">
+                        <h2 id="car-form-title">Registrar Nuevo Vehículo</h2>
+                        <form id="car-form">
+                            <input type="hidden" id="car-id">
+                            <div class="input-group">
+                                <label for="car-brand">Marca</label>
+                                <input type="text" id="car-brand" placeholder="Ej. Nissan, Toyota" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="car-model">Modelo / Versión</label>
+                                <input type="text" id="car-model" placeholder="Ej. Versa, Hilux" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="car-year">Año</label>
+                                <input type="number" id="car-year" placeholder="Ej. 2023" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="car-owner">Resguardante / Dueño</label>
+                                <input type="text" id="car-owner" placeholder="Nombre del responsable del auto" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary" id="btn-save-car">Guardar Vehículo</button>
+                                <button type="button" class="btn-secondary hidden" id="btn-cancel-car">Cancelar Edición</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card glass">
+                        <h2>Vehículos Registrados</h2>
+                        <div class="table-container">
+                            <table class="cars-table">
+                                <thead>
+                                    <tr>
+                                        <th>Vehículo</th>
+                                        <th>Año</th>
+                                        <th>Resguardante</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cars-table-body">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Grid para Personal -->
+                <div class="admin-grid" style="margin-top: 30px;">
+                    <div class="card glass">
+                        <h2 id="person-form-title">Registrar Personal (Elaboradores)</h2>
+                        <form id="person-form">
+                            <input type="hidden" id="person-id">
+                            <div class="input-group">
+                                <label for="person-name">Nombre Completo</label>
+                                <input type="text" id="person-name" placeholder="Nombre de quien autoriza/presta" required>
+                            </div>
+                            <div class="form-actions" style="margin-top: 15px;">
+                                <button type="submit" class="btn-primary" id="btn-save-person">Guardar Personal</button>
+                                <button type="button" class="btn-secondary hidden" id="btn-cancel-person">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card glass">
+                        <h2>Personal Registrado</h2>
+                        <div class="table-container">
+                            <table class="cars-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="persons-table-body">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Grid para Constructor de Formulario -->
+                <div class="admin-grid" style="margin-top: 30px;">
+                    <div class="card glass">
+                        <h2>Agregar Campo Extra al Formulario</h2>
+                        <form id="dynamic-field-form">
+                            <div class="input-group">
+                                <label for="df-label">Nombre del Campo</label>
+                                <input type="text" id="df-label" placeholder="Ej. Tarjeta de Circulación" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="df-type">Tipo de Campo</label>
+                                <select id="df-type" required>
+                                    <option value="text">Texto Corto</option>
+                                    <option value="number">Número</option>
+                                    <option value="select">Lista Desplegable (Select)</option>
+                                </select>
+                            </div>
+                            <div class="input-group full-width hidden" id="df-options-group">
+                                <label for="df-options">Opciones (Separadas por comas)</label>
+                                <input type="text" id="df-options" placeholder="Ej. Sí, No, No aplica">
+                            </div>
+                            <div class="form-actions" style="margin-top: 15px;">
+                                <button type="submit" class="btn-primary" id="btn-save-df">Agregar Campo</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card glass">
+                        <h2>Campos Personalizados Actuales</h2>
+                        <div class="table-container">
+                            <table class="cars-table">
+                                <thead>
+                                    <tr>
+                                        <th>Campo</th>
+                                        <th>Tipo</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dynamic-fields-table-body">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN: HISTORIAL DE PRÉSTAMOS -->
+            <section id="historial-section" class="content-section">
+                <header class="section-header">
+                    <h1>Historial de Préstamos</h1>
+                    <p>Consulta los préstamos realizados y descarga los comprobantes.</p>
+                </header>
+
+                <div class="card glass">
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <input type="text" id="search-loans" placeholder="🔍 Buscar por conductor, vehículo, oficio, destino...">
+                    </div>
+                    <div class="loans-list" id="loans-list-container">
+                        <!-- Dynamic content -->
+                        <div class="loading-text">Cargando historial...</div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal para ver préstamo (Formato Oficial) -->
+    <div id="loan-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header-actions no-print">
+                <button type="button" class="close-modal">&times; Cerrar</button>
+                <button type="button" class="btn-print" onclick="window.print()">🖨️ Imprimir Formato</button>
+            </div>
+            
+            <div class="documento-hoja" id="formato-oficial-print">
+                <header class="header-sistema">
+                    <img src="https://michoacan.gob.mx/cdn/img/logo.svg" alt="Gobierno de Michoacán" class="logo-michoacan">
+                    
+                    <div class="titulo-sistema">
+                        <h1>Control de Vehículos</h1>
+                        <p>Detalle del Préstamo de Auto</p>
+                    </div>
+                </header>
+
+                <div class="info-oficio">
+                    <div>
+                        <span>Número de Oficio</span>
+                        <strong id="print-oficio">--</strong>
+                    </div>
+                    <div style="text-align: right;">
+                        <span>Fecha de Emisión</span>
+                        <strong id="print-fecha-emision">--</strong>
+                    </div>
+                </div>
+
+                <table class="tabla-datos" id="print-tabla-datos">
+                    <!-- Filas dinámicas -->
+                </table>
+
+                <div class="seccion-firmas">
+                    <div class="bloque-firma">
+                        <img id="print-sig-elabora" src="" alt="Firma Elaboró" class="img-firma">
+                        <div class="linea-firma"></div>
+                        <div class="nombre" id="print-name-elabora">--</div>
+                        <div class="puesto">Elaboró</div>
+                    </div>
+                    
+                    <div class="bloque-firma">
+                        <img id="print-sig-recibe" src="" alt="Firma Recibió" class="img-firma">
+                        <div class="linea-firma"></div>
+                        <div class="nombre" id="print-name-recibe">--</div>
+                        <div class="puesto">Recibió (Conductor)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
