@@ -1052,7 +1052,7 @@
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-        const GEMINI_API_KEY = "AIzaSyAa6jk-aQxPwzraklLpP1tBJQgayrBfBa8"; // <-- REEMPLAZA ESTO CON TU CLAVE REAL DE GEMINI
+        const GEMINI_API_KEY = "AIzaSyCHzX44CTJQeEJI4toOahIyTjVJPfdT_nQ"; // <-- REEMPLAZA ESTO CON TU CLAVE REAL DE GEMINI
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
         const firebaseConfig = {
@@ -1345,9 +1345,8 @@ Reglas importantes:
                     let intento = 0;
                     while (intento < retries) {
                         try {
-                            const modelName = intento === 0 ? "gemini-2.5-flash" : "gemini-1.5-flash";
                             const visionModel = genAI.getGenerativeModel({
-                                model: modelName,
+                                model: "gemini-2.5-flash",
                                 generationConfig: {
                                     temperature: 0.1,
                                     responseMimeType: "application/json"
@@ -1377,7 +1376,13 @@ Reglas importantes:
                 const responseText = result.response.text();
                 console.log("📄 Respuesta Gemini:", responseText);
 
-                const json = JSON.parse(responseText);
+                let json = {};
+                try {
+                    let rawText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    json = JSON.parse(rawText);
+                } catch (parseError) {
+                    throw new Error("El formato de respuesta de la IA no fue válido. Inténtalo de nuevo.");
+                }
 
                 if (json.error) {
                     alert("Error IA: " + json.error);
