@@ -1341,15 +1341,39 @@ Reglas importantes:
 - Si el documento no es un oficio válido o no se puede leer, devolver:
 { "error": "No se pudo identificar un oficio válido" }`;
 
-                const visionModel = genAI.getGenerativeModel({
-                    model: "gemini-2.5-flash",
-                    generationConfig: {
-                        temperature: 0.1,
-                        responseMimeType: "application/json"
-                    }
-                });
+                async function generarConRetry(retries = 3) {
+                    let intento = 0;
+                    while (intento < retries) {
+                        try {
+                            const modelName = intento === 0 ? "gemini-2.5-flash" : "gemini-1.5-flash";
+                            const visionModel = genAI.getGenerativeModel({
+                                model: modelName,
+                                generationConfig: {
+                                    temperature: 0.1,
+                                    responseMimeType: "application/json"
+                                }
+                            });
+                            return await visionModel.generateContent([prompt, imagePart]);
+                        } catch (error) {
+                            const errMsg = error.message?.toLowerCase() || "";
+                            const isRetryable = errMsg.includes("503") || errMsg.includes("high demand") || errMsg.includes("quota") || errMsg.includes("timeout") || errMsg.includes("fetch") || errMsg.includes("network");
 
-                const result = await visionModel.generateContent([prompt, imagePart]);
+                            if (!isRetryable || intento === retries - 1) {
+                                throw error;
+                            }
+
+                            const espera = (intento + 1) * 3000;
+                            console.warn(`[Intento ${intento + 1}/${retries}] Error Gemini: ${error.message}. Reintentando en ${espera}ms...`);
+                            btn.innerHTML = `⚠️ Servidor ocupado, reintentando...`;
+
+                            await new Promise(resolve => setTimeout(resolve, espera));
+                            intento++;
+                            btn.innerHTML = `⏳ Analizando Oficio...`;
+                        }
+                    }
+                }
+
+                const result = await generarConRetry();
                 const responseText = result.response.text();
                 console.log("📄 Respuesta Gemini:", responseText);
 
