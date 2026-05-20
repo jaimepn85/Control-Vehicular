@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Control Vehicular</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-gradient-start: #0f172a;
+      --bg-gradient-end: #1e293b;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --input-bg: rgba(15, 23, 42, 0.6);
+      --input-border: rgba(255, 255, 255, 0.2);
+      --input-focus: #3b82f6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body {
+      background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+    }
+    .glass {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px 0 rgba(0,0,0,0.3);
+    }
+    .hidden { display: none !important; }
+
+    .app-container { display: flex; width: 100%; max-width: 1400px; margin: 0 auto; }
+
+    /* Sidebar */
+    .sidebar { width: 280px; min-height: 100vh; padding: 30px 20px; border-right: 1px solid var(--card-border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .logo-area { margin-bottom: 40px; padding-left: 10px; }
+    .logo-area h2 { font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+    .logo-area span { color: var(--primary-color); }
+    .nav-links { list-style: none; }
+    .nav-links li { margin-bottom: 10px; }
+    .nav-btn { width: 100%; padding: 14px 20px; background: transparent; border: none; color: var(--text-secondary); font-size: 16px; font-weight: 600; text-align: left; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; }
+    .nav-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+    .nav-btn.active { background: var(--primary-color); color: white; box-shadow: 0 4px 15px rgba(37,99,235,0.4); }
+
+    /* Main */
+    .main-content { flex: 1; padding: 30px 40px; overflow-y: auto; height: 100vh; }
+    .content-section { display: none; animation: fadeIn 0.4s ease-out; }
+    .content-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .section-header { margin-bottom: 30px; }
+    .section-header h1 { font-size: 32px; margin-bottom: 8px; font-weight: 800; }
+    .section-header p { color: var(--text-secondary); font-size: 16px; }
+
+    /* Cards */
+    .card { padding: 30px; margin-bottom: 30px; }
+    .admin-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+
+    /* Forms — inputs apilados (como el original) */
+    .input-group { display: flex; flex-direction: column; margin-bottom: 20px; }
+    .input-group.full-width { width: 100%; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-grid .full-width { grid-column: 1 / -1; }
+
+    label { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); }
+    input, select, textarea { padding: 14px 16px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 10px; color: var(--text-primary); font-size: 15px; transition: all 0.3s ease; outline: none; width: 100%; }
+    input:focus, select:focus, textarea:focus { border-color: var(--input-focus); box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+    select option { background: #1e293b; }
+    input[type="checkbox"] { width: 18px; height: 18px; }
+
+    /* Signatures */
+    .signatures-area { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 20px 0; padding-top: 20px; border-top: 1px solid var(--card-border); }
+    .signature-box { display: flex; flex-direction: column; align-items: center; }
+    canvas { background: #fff; border-radius: 8px; border: 2px solid var(--input-border); cursor: crosshair; margin-bottom: 10px; }
+    .btn-clear { background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+    .btn-clear:hover { background: rgba(255,255,255,0.1); color: var(--text-primary); }
+
+    /* Buttons */
+    .form-actions { display: flex; gap: 15px; margin-top: 15px; }
+    .btn-primary, .btn-secondary, .btn-danger { padding: 14px 24px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+    .btn-primary { background: var(--primary-color); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+    .btn-secondary { background: rgba(255,255,255,0.1); color: var(--text-primary); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+    .btn-danger { background: var(--danger); color: white; padding: 8px 14px; font-size: 14px; }
+
+    /* Tables */
+    .table-container { overflow-x: auto; }
+    .cars-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    .cars-table th, .cars-table td { padding: 14px; text-align: left; border-bottom: 1px solid var(--card-border); }
+    .cars-table th { font-weight: 600; color: var(--text-secondary); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+    .cars-table td { font-size: 15px; }
+    .action-btns { display: flex; gap: 8px; }
+    .btn-edit { background: rgba(59,130,246,0.2); color: #60a5fa; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+    .btn-edit:hover { background: rgba(59,130,246,0.4); }
+    .btn-delete { background: rgba(239,68,68,0.2); color: #f87171; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+    .btn-delete:hover { background: rgba(239,68,68,0.4); }
+
+    /* Accesorios */
+    .acc-area { display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.1); padding: 15px; border-radius: 8px; border: 1px solid var(--input-border); }
+    .acc-label { display: flex; align-items: center; gap: 10px; font-weight: normal !important; cursor: pointer; color: var(--text-primary); font-size: 15px; margin-bottom: 0 !important; }
+    .acc-label input { width: 18px !important; height: 18px !important; accent-color: var(--primary-color); }
+
+    /* Loan cards */
+    .loan-card { background: rgba(15,23,42,0.4); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; }
+    .loan-card:hover { border-color: rgba(255,255,255,0.3); }
+    .loan-info h3 { margin-bottom: 5px; color: var(--primary-color); }
+    .loan-info p { color: var(--text-secondary); font-size: 14px; margin-bottom: 2px; }
+    .loading-text { color: var(--text-secondary); text-align: center; padding: 40px; }
+
+    /* Modal */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center; }
+    .modal.show { display: flex; animation: fadeIn 0.3s; }
+    .modal-content { background-color: var(--bg-gradient-start); padding: 30px; border: 1px solid var(--card-border); border-radius: 16px; width: 90%; max-width: 700px; position: relative; max-height: 90vh; overflow-y: auto; }
+    .modal-header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .close-modal { background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 16px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .close-modal:hover { background: rgba(255,255,255,0.2); }
+    .btn-print { background: var(--success); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .btn-print:hover { background: #059669; }
+
+    /* Formato Oficial */
+    .documento-hoja { background: #fff; max-width: 740px; margin: 0 auto; padding: 40px; border: 1px solid #e2e8f0; font-family: 'Helvetica Neue', Arial, sans-serif; color: #2d3748; line-height: 1.5; }
+    .header-sistema { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #8c1d40; padding-bottom: 20px; margin-bottom: 30px; }
+    .logo-michoacan { height: 65px; width: auto; }
+    .titulo-sistema { text-align: right; }
+    .titulo-sistema h1 { font-size: 18pt; color: #8c1d40; margin: 0; text-transform: uppercase; }
+    .titulo-sistema p { font-size: 11pt; color: #718096; margin: 5px 0 0; font-weight: bold; }
+    .info-oficio { display: flex; justify-content: space-between; background: #f8fafc; border-left: 4px solid #d69e2e; padding: 12px 20px; margin-bottom: 30px; border-radius: 0 4px 4px 0; }
+    .info-oficio div span { display: block; font-size: 9pt; color: #718096; text-transform: uppercase; }
+    .info-oficio div strong { font-size: 12pt; color: #1a202c; }
+    .tabla-datos { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+    .tabla-datos th, .tabla-datos td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+    .tabla-datos th { background: #f7fafc; color: #4a5568; font-weight: bold; width: 30%; font-size: 10pt; text-transform: uppercase; }
+    .tabla-datos td { color: #2d3748; font-size: 11pt; }
+    .seccion-firmas { display: flex; justify-content: space-around; margin-top: 60px; padding-top: 20px; }
+    .bloque-firma { text-align: center; width: 40%; }
+    .img-firma { max-width: 100%; height: auto; max-height: 80px; margin-bottom: 5px; }
+    .linea-firma { border-top: 1px solid #a0aec0; margin-bottom: 8px; }
+    .bloque-firma .nombre { font-weight: bold; font-size: 11pt; color: #2d3748; }
+    .bloque-firma .puesto { font-size: 9pt; color: #718096; text-transform: uppercase; }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .app-container { flex-direction: column; }
+      .sidebar { width: 100%; min-height: auto; padding: 15px 20px; border-right: none; border-bottom: 1px solid var(--card-border); flex-direction: row; align-items: center; justify-content: space-between; }
+      .logo-area { margin-bottom: 0; }
+      .nav-links { display: flex; gap: 8px; }
+      .nav-links li { margin-bottom: 0; }
+      .nav-btn { padding: 10px 14px; font-size: 14px; }
+      .main-content { height: auto; padding: 20px; }
+      .admin-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .signatures-area { grid-template-columns: 1fr; }
+      .loan-card { flex-direction: column; gap: 15px; align-items: flex-start; }
+    }
+
+    /* Print */
+    @media print {
+      @page { margin: 1cm; size: letter portrait; }
+      html, body { background: white !important; display: block !important; }
+      .app-container { display: none !important; }
+      .no-print, .modal-header-actions { display: none !important; }
+      .modal { position: static !important; background: none !important; display: block !important; width: 100% !important; height: auto !important; }
+      .modal-content { position: static !important; background: none !important; border: none !important; box-shadow: none !important; width: 100% !important; max-width: none !important; max-height: none !important; margin: 0 !important; padding: 0 !important; }
+      .documento-hoja { border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; }
+      .seccion-firmas { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo-area">
+      <h2>Control <span>Vehicular</span></h2>
+    </div>
+    <ul class="nav-links">
+      <li><button class="nav-btn active" data-target="prestamos-section">📋 Préstamos</button></li>
+      <li><button class="nav-btn" data-target="admin-section">🚘 Administración</button></li>
+      <li><button class="nav-btn" data-target="historial-section">📜 Historial Préstamos</button></li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+
+    <!-- PRÉSTAMOS -->
+    <section id="prestamos-section" class="content-section active">
+      <header class="section-header">
+        <h1>Nuevo Préstamo</h1>
+        <p>Registra la salida de un vehículo.</p>
+      </header>
+
+      <div class="card glass">
+        <form id="loan-form">
+          <div class="form-grid">
+            <div class="input-group">
+              <label for="loan-car">Vehículo</label>
+              <select id="loan-car" required>
+                <option value="">Cargando vehículos...</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="loan-oficio">Número de Oficio</label>
+              <input type="text" id="loan-oficio" placeholder="Ej. OF-2023-001" required>
+            </div>
+            <div class="input-group">
+              <label for="loan-elaborador">Elaborado por</label>
+              <select id="loan-elaborador" required>
+                <option value="">Cargando personal...</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="loan-driver">Quien maneja (Recibe)</label>
+              <input type="text" id="loan-driver" placeholder="Nombre completo del conductor" required>
+            </div>
+            <div class="input-group full-width">
+              <label for="loan-location">Lugar de comisión</label>
+              <input type="text" id="loan-location" placeholder="Destino / Propósito" required>
+            </div>
+            <div class="input-group">
+              <label for="loan-start-date">Fecha y hora de salida</label>
+              <input type="datetime-local" id="loan-start-date" required>
+            </div>
+            <div class="input-group">
+              <label for="loan-end-date">Fecha de regreso (estimada)</label>
+              <input type="date" id="loan-end-date" required>
+            </div>
+          </div>
+
+          <div id="dynamic-fields-container" class="form-grid" style="margin-top:20px; margin-bottom:0;"></div>
+
+          <div class="form-actions" style="margin-top:20px;">
+            <button type="submit" class="btn-primary" id="btn-save-loan">Registrar Préstamo</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ADMINISTRACIÓN -->
+    <section id="admin-section" class="content-section">
+      <header class="section-header">
+        <h1>Administración de Vehículos</h1>
+        <p>Gestiona el padrón de autos disponibles.</p>
+      </header>
+
+      <div class="admin-grid">
+        <div class="card glass">
+          <h2 id="car-form-title" style="margin-bottom:20px;">Registrar Nuevo Vehículo</h2>
+          <form id="car-form">
+            <input type="hidden" id="car-id">
+            <div class="input-group">
+              <label for="car-brand">Marca</label>
+              <input type="text" id="car-brand" placeholder="Ej. Nissan, Toyota" required>
+            </div>
+            <div class="input-group">
+              <label for="car-model">Modelo / Versión</label>
+              <input type="text" id="car-model" placeholder="Ej. Versa, Hilux" required>
+            </div>
+            <div class="input-group">
+              <label for="car-year">Año</label>
+              <input type="number" id="car-year" placeholder="Ej. 2023" required>
+            </div>
+            <div class="input-group">
+              <label for="car-plate">Placas</label>
+              <input type="text" id="car-plate" placeholder="Ej. ABC-123-D">
+            </div>
+            <div class="input-group">
+              <label for="car-owner">Resguardante / Dueño</label>
+              <input type="text" id="car-owner" placeholder="Nombre del responsable del auto" required>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="btn-save-car">Guardar Vehículo</button>
+              <button type="button" class="btn-secondary hidden" id="btn-cancel-car">Cancelar Edición</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card glass">
+          <h2 style="margin-bottom:10px;">Vehículos Registrados</h2>
+          <div class="table-container">
+            <table class="cars-table">
+              <thead>
+                <tr>
+                  <th>Vehículo</th>
+                  <th>Placas</th>
+                  <th>Año</th>
+                  <th>Resguardante</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="cars-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-grid" style="margin-top:30px;">
+        <div class="card glass">
+          <h2 id="person-form-title" style="margin-bottom:20px;">Registrar Personal (Elaboradores)</h2>
+          <form id="person-form">
+            <input type="hidden" id="person-id">
+            <div class="input-group">
+              <label for="person-name">Nombre Completo</label>
+              <input type="text" id="person-name" placeholder="Nombre de quien autoriza/presta" required>
+            </div>
+            <div class="form-actions" style="margin-top:15px;">
+              <button type="submit" class="btn-primary" id="btn-save-person">Guardar Personal</button>
+              <button type="button" class="btn-secondary hidden" id="btn-cancel-person">Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card glass">
+          <h2 style="margin-bottom:10px;">Personal Registrado</h2>
+          <div class="table-container">
+            <table class="cars-table">
+              <thead><tr><th>Nombre</th><th>Acciones</th></tr></thead>
+              <tbody id="persons-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-grid" style="margin-top:30px;">
+        <div class="card glass">
+          <h2 style="margin-bottom:20px;">Agregar Campo Extra al Formulario</h2>
+          <form id="dynamic-field-form">
+            <div class="input-group">
+              <label for="df-label">Nombre del Campo</label>
+              <input type="text" id="df-label" placeholder="Ej. Tarjeta de Circulación" required>
+            </div>
+            <div class="input-group">
+              <label for="df-type">Tipo de Campo</label>
+              <select id="df-type" required>
+                <option value="text">Texto Corto</option>
+                <option value="number">Número</option>
+                <option value="select">Lista Desplegable (Select)</option>
+              </select>
+            </div>
+            <div class="input-group hidden" id="df-options-group">
+              <label for="df-options">Opciones (Separadas por comas)</label>
+              <input type="text" id="df-options" placeholder="Ej. Sí, No, No aplica">
+            </div>
+            <div class="form-actions" style="margin-top:15px;">
+              <button type="submit" class="btn-primary" id="btn-save-df">Agregar Campo</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card glass">
+          <h2 style="margin-bottom:10px;">Campos Personalizados Actuales</h2>
+          <div class="table-container">
+            <table class="cars-table">
+              <thead><tr><th>Campo</th><th>Tipo</th><th>Acciones</th></tr></thead>
+              <tbody id="dynamic-fields-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section id="historial-section" class="content-section">
+      <header class="section-header">
+        <h1>Historial de Préstamos</h1>
+        <p>Consulta los préstamos realizados y descarga los comprobantes.</p>
+      </header>
+      <div class="card glass">
+        <div class="input-group" style="margin-bottom:20px;">
+          <input type="text" id="search-loans" placeholder="🔍 Buscar por conductor, vehículo, oficio, destino...">
+        </div>
+        <div class="loans-list" id="loans-list-container">
+          <div class="loading-text">Cargando historial...</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Modal Formato Oficial -->
+<div id="loan-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header-actions no-print">
+      <button type="button" class="close-modal">× Cerrar</button>
+      <button type="button" class="btn-print" onclick="window.print()">🖨️ Imprimir Formato</button>
+    </div>
+    <div class="documento-hoja" id="formato-oficial-print">
+      <header class="header-sistema">
+        <img src="https://michoacan.gob.mx/cdn/img/logo.svg" alt="Gobierno de Michoacán" class="logo-michoacan">
+        <div class="titulo-sistema">
+          <h1>Control de Vehículos</h1>
+          <p>Detalle del Préstamo de Auto</p>
+        </div>
+      </header>
+      <div class="info-oficio">
+        <div>
+          <span>Número de Oficio</span>
+          <strong id="print-oficio">--</strong>
+        </div>
+        <div style="text-align:right;">
+          <span>Fecha de Emisión</span>
+          <strong id="print-fecha-emision">--</strong>
+        </div>
+      </div>
+      <table class="tabla-datos" id="print-tabla-datos"></table>
+      <div class="seccion-firmas">
+        <div class="bloque-firma">
+          <img id="print-sig-elabora" src="" alt="Firma Elaboró" class="img-firma">
+          <div class="linea-firma"></div>
+          <div class="nombre" id="print-name-elabora">--</div>
+          <div class="puesto">Elaboró</div>
+        </div>
+        <div class="bloque-firma">
+          <img id="print-sig-recibe" src="" alt="Firma Recibió" class="img-firma">
+          <div class="linea-firma"></div>
+          <div class="nombre" id="print-name-recibe">--</div>
+          <div class="puesto">Recibió (Conductor)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, setDoc, deleteDoc,
+  onSnapshot, addDoc, serverTimestamp, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD5Ydv-ZB0jFIg3uN_juU66Ers7COa3b2c",
+  authDomain: "control-vehicular-42986.firebaseapp.com",
+  projectId: "control-vehicular-42986",
+  storageBucket: "control-vehicular-42986.firebasestorage.app",
+  messagingSenderId: "233831555811",
+  appId: "1:233831555811:web:35bb4e83bb379a3cc9dbd6"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+const AUTOS     = "pa_autos";
+const PRESTAMOS = "pa_prestamos";
+const PERSONAL  = "pa_personal";
+const CONFIG    = "pa_config";
+
+let carsData = [], personsData = [], dynamicFieldsData = [], loansData = [];
+
+// ── NAVEGACIÓN ──────────────────────────────────────
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    document.getElementById(e.currentTarget.dataset.target).classList.add('active');
+  });
+});
+
+
+// ── AUTOS ────────────────────────────────────────────
+const carForm      = document.getElementById('car-form');
+const btnCancelCar = document.getElementById('btn-cancel-car');
+
+carForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const id   = document.getElementById('car-id').value;
+  const data = {
+    brand: document.getElementById('car-brand').value,
+    model: document.getElementById('car-model').value,
+    year:  document.getElementById('car-year').value,
+    plate: document.getElementById('car-plate').value,
+    owner: document.getElementById('car-owner').value,
+  };
+  try {
+    id ? await setDoc(doc(db, AUTOS, id), data) : await addDoc(collection(db, AUTOS), data);
+    alert(id ? "Vehículo actualizado." : "Vehículo guardado.");
+    resetCarForm();
+  } catch(err) { alert("Error: "+err.message); }
+});
+
+function resetCarForm() {
+  carForm.reset();
+  document.getElementById('car-id').value = '';
+  document.getElementById('car-form-title').innerText = "Registrar Nuevo Vehículo";
+  btnCancelCar.classList.add('hidden');
+}
+btnCancelCar.addEventListener('click', resetCarForm);
+
+onSnapshot(collection(db, AUTOS), snap => {
+  carsData = [];
+  const tbody = document.getElementById('cars-table-body');
+  const sel   = document.getElementById('loan-car');
+  tbody.innerHTML = '';
+  sel.innerHTML = '<option value="">Selecciona un vehículo...</option>';
+  snap.forEach(d => {
+    const car = { id: d.id, ...d.data() };
+    carsData.push(car);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${car.brand} ${car.model}</td>
+      <td>${car.plate||'S/N'}</td>
+      <td>${car.year}</td>
+      <td>${car.owner}</td>
+      <td class="action-btns">
+        <button class="btn-edit" onclick="window.editCar('${car.id}')">Editar</button>
+        <button class="btn-delete" onclick="window.deleteCar('${car.id}')">Borrar</button>
+      </td>`;
+    tbody.appendChild(tr);
+    const opt = document.createElement('option');
+    opt.value = car.id;
+    opt.textContent = `${car.brand} ${car.model} ${car.plate ? '('+car.plate+')' : '('+car.year+')'}`;
+    sel.appendChild(opt);
+  });
+});
+
+window.editCar = id => {
+  const car = carsData.find(c => c.id === id);
+  if (!car) return;
+  document.getElementById('car-id').value    = car.id;
+  document.getElementById('car-brand').value = car.brand;
+  document.getElementById('car-model').value = car.model;
+  document.getElementById('car-year').value  = car.year;
+  document.getElementById('car-plate').value = car.plate||'';
+  document.getElementById('car-owner').value = car.owner;
+  document.getElementById('car-form-title').innerText = "Editar Vehículo";
+  btnCancelCar.classList.remove('hidden');
+  document.querySelector('[data-target="admin-section"]').click();
+};
+window.deleteCar = async id => {
+  if (confirm("¿Eliminar este vehículo?")) {
+    try { await deleteDoc(doc(db, AUTOS, id)); } catch(e) { alert("Error: "+e.message); }
+  }
+};
+
+// ── PERSONAL ─────────────────────────────────────────
+const personForm      = document.getElementById('person-form');
+const btnCancelPerson = document.getElementById('btn-cancel-person');
+
+personForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const id   = document.getElementById('person-id').value;
+  const data = { name: document.getElementById('person-name').value };
+  try {
+    id ? await setDoc(doc(db, PERSONAL, id), data) : await addDoc(collection(db, PERSONAL), data);
+    alert(id ? "Personal actualizado." : "Personal guardado.");
+    resetPersonForm();
+  } catch(err) { alert("Error: "+err.message); }
+});
+function resetPersonForm() {
+  personForm.reset();
+  document.getElementById('person-id').value = '';
+  document.getElementById('person-form-title').innerText = "Registrar Personal (Elaboradores)";
+  btnCancelPerson.classList.add('hidden');
+}
+btnCancelPerson.addEventListener('click', resetPersonForm);
+
+onSnapshot(collection(db, PERSONAL), snap => {
+  personsData = [];
+  const tbody = document.getElementById('persons-table-body');
+  const sel   = document.getElementById('loan-elaborador');
+  tbody.innerHTML = '';
+  sel.innerHTML = '<option value="">Selecciona personal...</option>';
+  snap.forEach(d => {
+    const p = { id: d.id, ...d.data() };
+    personsData.push(p);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${p.name}</td><td class="action-btns">
+      <button class="btn-edit" onclick="window.editPerson('${p.id}')">Editar</button>
+      <button class="btn-delete" onclick="window.deletePerson('${p.id}')">Borrar</button></td>`;
+    tbody.appendChild(tr);
+    const opt = document.createElement('option');
+    opt.value = p.id; opt.textContent = p.name;
+    sel.appendChild(opt);
+  });
+});
+
+window.editPerson = id => {
+  const p = personsData.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('person-id').value   = p.id;
+  document.getElementById('person-name').value = p.name;
+  document.getElementById('person-form-title').innerText = "Editar Personal";
+  btnCancelPerson.classList.remove('hidden');
+  document.querySelector('[data-target="admin-section"]').click();
+};
+window.deletePerson = async id => {
+  if (confirm("¿Eliminar esta persona?")) {
+    try { await deleteDoc(doc(db, PERSONAL, id)); } catch(e) { alert("Error: "+e.message); }
+  }
+};
+
+// ── CAMPOS DINÁMICOS ─────────────────────────────────
+const dfForm         = document.getElementById('dynamic-field-form');
+const dfTypeSelect   = document.getElementById('df-type');
+const dfOptionsGroup = document.getElementById('df-options-group');
+
+dfTypeSelect.addEventListener('change', e => {
+  const isSel = e.target.value === 'select';
+  dfOptionsGroup.classList.toggle('hidden', !isSel);
+  document.getElementById('df-options').required = isSel;
+});
+
+dfForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const label = document.getElementById('df-label').value;
+  const type  = document.getElementById('df-type').value;
+  const opts  = document.getElementById('df-options').value;
+  const data  = {
+    id: 'df_' + label.toLowerCase().replace(/[^a-z0-9]/g,'_'),
+    label, type,
+    options: type==='select' ? opts.split(',').map(o=>o.trim()) : [],
+    createdAt: serverTimestamp()
+  };
+  try { await addDoc(collection(db, CONFIG), data); alert("Campo guardado."); dfForm.reset(); dfOptionsGroup.classList.add('hidden'); }
+  catch(err) { alert("Error: "+err.message); }
+});
+
+onSnapshot(query(collection(db, CONFIG), orderBy('createdAt','asc')), snap => {
+  dynamicFieldsData = [];
+  const tbody      = document.getElementById('dynamic-fields-table-body');
+  const dfContainer = document.getElementById('dynamic-fields-container');
+  tbody.innerHTML = ''; dfContainer.innerHTML = '';
+  snap.forEach(d => {
+    const field = { docId: d.id, ...d.data() };
+    dynamicFieldsData.push(field);
+    const typeLabel = field.type==='select'?'Lista Desplegable':field.type==='number'?'Número':'Texto Corto';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${field.label}</td><td>${typeLabel}</td><td class="action-btns">
+      <button class="btn-delete" onclick="window.deleteDynamicField('${field.docId}')">Borrar</button></td>`;
+    tbody.appendChild(tr);
+    const div = document.createElement('div');
+    div.className = 'input-group';
+    let input = field.type==='select'
+      ? `<select id="${field.id}" required><option value="">Seleccionar...</option>${field.options.map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`
+      : `<input type="${field.type}" id="${field.id}" placeholder="Ingrese ${field.label.toLowerCase()}" required>`;
+    div.innerHTML = `<label for="${field.id}">${field.label}</label>${input}`;
+    dfContainer.appendChild(div);
+  });
+});
+
+window.deleteDynamicField = async docId => {
+  if (confirm("¿Eliminar este campo? Los registros pasados lo conservarán.")) {
+    try { await deleteDoc(doc(db, CONFIG, docId)); } catch(e) { alert("Error: "+e.message); }
+  }
+};
+
+// ── PRÉSTAMOS ─────────────────────────────────────────
+const loanForm = document.getElementById('loan-form');
+
+loanForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const carId   = document.getElementById('loan-car').value;
+  const carObj  = carsData.find(c => c.id === carId);
+  if (!carObj) return alert("Selecciona un vehículo válido.");
+  const personId  = document.getElementById('loan-elaborador').value;
+  const personObj = personsData.find(p => p.id === personId);
+  if (!personObj) return alert("Selecciona personal válido.");
+
+  const customData = {};
+  dynamicFieldsData.forEach(f => { const el=document.getElementById(f.id); if(el) customData[f.label]=el.value; });
+
+  const data = {
+    carId, carName: `${carObj.brand} ${carObj.model} (${carObj.year})`,
+    elaboradorId: personId, elaboradorName: personObj.name,
+    oficio:    document.getElementById('loan-oficio').value,
+    driver:    document.getElementById('loan-driver').value,
+    location:  document.getElementById('loan-location').value,
+    startDate: document.getElementById('loan-start-date').value,
+    endDate:   document.getElementById('loan-end-date').value,
+    customData,
+    createdAt: serverTimestamp()
+  };
+
+  try {
+    await addDoc(collection(db, PRESTAMOS), data);
+    alert("Préstamo registrado exitosamente.");
+    loanForm.reset();
+    document.querySelector('[data-target="historial-section"]').click();
+  } catch(err) { alert("Error al registrar: "+err.message); }
+});
+
+// Listen Loans
+onSnapshot(query(collection(db, PRESTAMOS), orderBy('createdAt','desc')), snap => {
+  loansData = [];
+  snap.forEach(d => loansData.push({ id: d.id, ...d.data() }));
+  renderLoans();
+});
+
+function renderLoans(filter='') {
+  const container = document.getElementById('loans-list-container');
+  container.innerHTML = '';
+  const lf = filter.toLowerCase();
+  const filtered = loansData.filter(l =>
+    (l.carName||'').toLowerCase().includes(lf) ||
+    (l.driver||'').toLowerCase().includes(lf) ||
+    (l.location||'').toLowerCase().includes(lf) ||
+    (l.oficio||'').toLowerCase().includes(lf)
+  );
+  if (!filtered.length) { container.innerHTML='<div class="loading-text">No hay préstamos que coincidan.</div>'; return; }
+  filtered.forEach(loan => {
+    let dateStr = 'N/A';
+    if (loan.startDate) {
+      // Si tiene 'T', es datetime-local, si no, es solo date.
+      const d = loan.startDate.includes('T') ? new Date(loan.startDate) : new Date(loan.startDate + 'T12:00:00');
+      dateStr = d.toLocaleString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+    const div = document.createElement('div');
+    div.className = 'loan-card';
+    div.innerHTML = `
+      <div class="loan-info">
+        <h3>${loan.carName}</h3>
+        <p><strong>Oficio:</strong> ${loan.oficio||'N/A'}</p>
+        <p><strong>Conductor:</strong> ${loan.driver}</p>
+        <p><strong>Comisión:</strong> ${loan.location}</p>
+        <p><strong>Salida:</strong> ${dateStr}</p>
+      </div>
+      <div><button class="btn-primary" onclick="window.viewLoan('${loan.id}')">Ver Detalles</button></div>`;
+    container.appendChild(div);
+  });
+}
+
+document.getElementById('search-loans').addEventListener('input', e => renderLoans(e.target.value));
+
+// ── MODAL ─────────────────────────────────────────────
+const modal = document.getElementById('loan-modal');
+document.querySelector('.close-modal').onclick = () => modal.classList.remove('show');
+window.onclick = e => { if (e.target===modal) modal.classList.remove('show'); };
+
+window.viewLoan = id => {
+  const loan = loansData.find(l => l.id === id);
+  if (!loan) return;
+  const carObj = carsData.find(c => c.id === loan.carId);
+  document.getElementById('print-oficio').innerText = loan.oficio||'S/N';
+  document.getElementById('print-fecha-emision').innerText = new Date(loan.createdAt?.toDate()||Date.now()).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  const accHtml = `
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 5px;">
+      <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" ${loan.accessories?.tarjeta ? 'checked' : ''}> Tarjeta de circulación</label>
+      <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" ${loan.accessories?.poliza ? 'checked' : ''}> Póliza de seguro</label>
+      <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" ${loan.accessories?.birlo ? 'checked' : ''}> Birlo de seguridad</label>
+      <label style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" ${loan.accessories?.llanta ? 'checked' : ''}> Llanta de refacción con herramienta para cambio</label>
+    </div>
+  `;
+
+  const fmtDate = s => s ? new Date(s + 'T12:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A';
+  const fmtDateTime = s => {
+    if (!s) return 'N/A';
+    const d = s.includes('T') ? new Date(s) : new Date(s + 'T12:00:00');
+    return d.toLocaleString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  let html = `
+    <tr><th>Vehículo:</th><td>${loan.carName}</td></tr>
+    <tr><th>Placas:</th><td>${carObj ? (carObj.plate||'S/N') : 'N/A'}</td></tr>
+    <tr><th>Conductor:</th><td>${loan.driver}</td></tr>
+    <tr><th>Elaborado por:</th><td>${loan.elaboradorName||'N/A'}</td></tr>
+    <tr><th>Destino / Lugar:</th><td>${loan.location}</td></tr>
+    <tr><th>Fecha de Salida:</th><td>${fmtDateTime(loan.startDate)}</td></tr>
+    <tr><th>Fecha de Regreso:</th><td>${fmtDate(loan.endDate)}</td></tr>
+    <tr><th>Kilometraje:</th><td>Inicial: _______________________ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Final: _______________________</td></tr>
+    <tr><th>Nivel de Gasolina:</th><td>Inicial: _______________________ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Final: _______________________</td></tr>
+    <tr><th style="vertical-align: top;">Accesorios:</th><td>${accHtml}</td></tr>`;
+  
+  if (loan.customData) {
+    for (const [k,v] of Object.entries(loan.customData)) {
+      html += `<tr><th>${k}:</th><td>${v||'N/A'}</td></tr>`;
+    }
+  }
+  html += `<tr><th style="vertical-align: top;">Observaciones:</th><td style="height: 100px; vertical-align: top; padding-bottom: 20px;">${loan.observations||''}</td></tr>`;
+  document.getElementById('print-tabla-datos').innerHTML = html;
+
+  document.getElementById('print-sig-elabora').src = loan.signatureElabora||'';
+  document.getElementById('print-name-elabora').innerText = loan.elaboradorName||'No especificado';
+  document.getElementById('print-sig-recibe').src = loan.signatureRecibe||'';
+  document.getElementById('print-name-recibe').innerText = loan.driver;
+
+  modal.classList.add('show');
+};
+</script>
+</body>
+</html>
